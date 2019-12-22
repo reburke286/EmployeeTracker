@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -23,42 +24,42 @@ function inquireUser() {
         name: "prompt",
         message: "What do you want to do?",
         choices: [
-          "View Employees",
-          "Update Employee Information",
-          "Add Employee"
+          { name: "View Employees", value: 0 },
+          { name: "Update Employee Information", value: 1 },
+          { name: "Add Employee", value: 2 }
         ]
       }
     ])
     .then(answers => {
-      if ((answers.prompt = "View Employees")) {
-        seeEmployees();
+      if (answers.prompt === 0) {
+        viewEmployees();
+      } else if (answers.prompt === 1) {
+        updateEmployee();
+      } else if (answers.prompt === 2) {
+        addEmployee();
+      } else {
+        console.log("You have not chosen well. Please try again.");
       }
       console.log(answers);
     });
 }
 
-function seeEmployees() {
+function viewEmployees() {
   const query = connection.query(
-    // the ? is serving as a placeholder for the object or array below
-    // if it's passing one argument you list it out as an object
-    "SELECT id, first_name, last_name FROM employee",
-    //callback function
+    "SELECT employee.id, employee.first_name, employee.last_name, roles.role_title, roles.salary, department.dept_name FROM department INNER JOIN roles ON roles.dept_id = department.id INNER JOIN employee ON employee.role_id = roles.id",
     function(err, res) {
       if (err) throw err;
-      console.log(res, joinEmployeesAndDepartments());
+      const joinedArray = res;
+      const table1 = cTable.getTable(joinedArray);
+      console.log(table1);
     }
   );
+}
 
-  function joinEmployeesAndDepartments() {
-    const query = connection.query(
-      "SELECT roles.role_title, roles.salary, department.dept_name FROM department INNER JOIN roles ON roles.dept_id = department.id",
-      function(err, res) {
-        if (err) throw err;
-        console.log(res);
-      }
-    );
-  }
+function updateEmployee() {
+  console.log("update employee code");
+}
 
-  // logs the actual query being run
-  console.log(query.sql);
+function addEmployee() {
+  console.log("add employee code");
 }
