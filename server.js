@@ -34,13 +34,12 @@ function inquireUser() {
       if (answers.prompt === 0) {
         viewEmployees();
       } else if (answers.prompt === 1) {
-        updateEmployee();
+        updateEmployeeRole();
       } else if (answers.prompt === 2) {
         addEmployee();
       } else {
         console.log("You have not chosen well. Please try again.");
       }
-      console.log(answers);
     });
 }
 
@@ -56,8 +55,48 @@ function viewEmployees() {
   );
 }
 
-function updateEmployee() {
-  console.log("update employee code");
+function updateEmployeeRole() {
+  console.log("You have chosen to update an employee role.");
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "empID",
+        message: "Please enter the id of the employee you'd like to update."
+      },
+      {
+        type: "rawlist",
+        name: "newRole",
+        message: "Please choose the role you'd like to assign your employee",
+        choices: [
+          { name: "Gryffindor", value: 1 },
+          { name: "Headmaster", value: 2 },
+          { name: "Head of House", value: 3 },
+          { name: "Ravenclaw", value: 4 },
+          { name: "Slytherin", value: 5 },
+          { name: "Poltergeist", value: 6 }
+        ]
+      }
+    ])
+    .then(answers => {
+      const empID = answers.empID;
+      const newRoleID = answers.newRole;
+      console.log(empID, newRoleID);
+      //       UPDATE employees
+      // SET
+      //     email = 'mary.patterson@classicmodelcars.com'
+      // WHERE
+      //     employeeNumber = 1056;
+      const query =
+        "UPDATE employee SET employee.role_id = ? WHERE employee.id = ?;";
+      connection.query(query, [newRoleID, empID], function(err, res) {
+        if (err) throw err;
+        console.log(
+          "You have successfully updated the role! View Employees to see your changes."
+        );
+        viewEmployees();
+      });
+    });
 }
 
 function addEmployee() {
