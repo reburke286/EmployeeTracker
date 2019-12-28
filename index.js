@@ -22,7 +22,8 @@ const code = {
           choices: [
             { name: "View Employees", value: 0 },
             { name: "Update Employee Role", value: 1 },
-            { name: "Add", value: 2 }
+            { name: "Add", value: 2 },
+            { name: "Delete", value: 3 }
           ]
         }
       ])
@@ -33,6 +34,8 @@ const code = {
           updateEmployeeRole();
         } else if (answers.prompt === 2) {
           add();
+        } else if (answers.prompt === 3) {
+          deleteSomething();
         } else {
           console.log("You have not chosen well. Please try again.");
         }
@@ -70,7 +73,7 @@ function viewRoles() {
 
 //Update Functions
 function updateEmployeeRole() {
-  console.log("You have chosen to update an employee role.");
+  viewEmployees();
   return inquirer
     .prompt([
       {
@@ -190,35 +193,21 @@ function addEmployee() {
           { name: "Poltergeist", value: 6 },
           { name: "Kitchen Helper", value: 7 }
         ]
-      },
-      {
-        type: "rawlist",
-        name: "manager_id",
-        message: "Please select their manager. If none, choose TBD.",
-        choices: [
-          { name: "Albus Dumbledore", value: 2 },
-          { name: "Severus Snape", value: 3 },
-          { name: "Minerva McGonnagall", value: 5 },
-          { name: "Filius Flitwick", value: 9 },
-          { name: "TBD", value: 0 }
-        ]
       }
     ])
     .then(answers => {
       const firstName = answers.first_name;
       const lastName = answers.last_name;
       const roleID = answers.role_id;
-      const managerID = answers.manager_id;
       const query =
-        "INSERT INTO employee (`first_name`, `last_name`, `role_id`, `manager_id`) VALUES (?, ?, ?, ?);";
-      connection.query(
-        query,
-        [firstName, lastName, roleID, managerID],
-        function(err, res) {
-          if (err) throw err;
-          console.log("You have successfully added a role.");
-        }
-      );
+        "INSERT INTO employee (`first_name`, `last_name`, `role_id`) VALUES (?, ?, ?);";
+      connection.query(query, [firstName, lastName, roleID], function(
+        err,
+        res
+      ) {
+        if (err) throw err;
+        console.log("You have successfully added a role.");
+      });
       viewEmployees();
     });
 }
@@ -243,7 +232,6 @@ function add() {
           break;
 
         case 2:
-          console.log("You're going to add an employee");
           addEmployee();
           break;
 
@@ -251,6 +239,75 @@ function add() {
           addRole();
           break;
       }
+    });
+}
+
+// Delete Functions
+function deleteSomething() {
+  return inquirer
+    .prompt([
+      {
+        type: "rawlist",
+        name: "delete",
+        message: "Which would you like to delete?",
+        choices: [
+          { name: "Employee", value: 2 },
+          { name: "Role", value: 3 }
+        ]
+      }
+    ])
+    .then(answers => {
+      switch (answers.delete) {
+        case 2:
+          deleteEmployee();
+          break;
+
+        case 3:
+          deleteRole();
+          break;
+      }
+    });
+}
+
+function deleteEmployee() {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "emp_id",
+        message: "Please enter the id of the employee you'd like to delete."
+      }
+    ])
+    .then(answers => {
+      const emp_id = answers.emp_id;
+      const query = "DELETE FROM employee WHERE id = ?";
+      connection.query(query, emp_id, function(err, res) {
+        if (err) throw err;
+        console.log("You have successfully deleted an employee.");
+      });
+      viewEmployees();
+    });
+}
+
+function deleteRole() {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "role",
+        message: "Please enter the role you'd like to delete."
+      }
+    ])
+    .then(answers => {
+      const role = answers.role;
+      const query = "DELETE FROM roles WHERE role_title = ?";
+      connection.query(query, role, function(err, res) {
+        if (err)
+          console.log(
+            "Sorry. This role is linked to other employees and departments. Please see your IT administrator to delete."
+          );
+        console.log("You have successfully deleted a role.");
+      });
     });
 }
 
